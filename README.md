@@ -26,8 +26,8 @@ Final goal is that these provide information for user to be able to select the e
 ## Addional Documents 
 Please refer to the following documents for further information:
 
-- [Contributing Guidelines](https://github.com/sahaavi/New-Venture-s-Compass/blob/main/doc/CONTRIBUTING.md)
+- [Contributing Guidelines](https://github.com/sahaavi/New-Venture-s-Compass-R/blob/main/CONTRIBUTING.md)
 
-- [Code of Conduct](https://github.com/sahaavi/New-Venture-s-Compass/blob/main/doc/CODE_OF_CONDUCT.md)
+- [Code of Conduct](https://github.com/sahaavi/New-Venture-s-Compass-R/blob/main/CODE_OF_CONDUCT.md)
 
-- [Team Contract](https://github.com/sahaavi/New-Venture-s-Compass/blob/main/doc/team-contract.md)
+- [Team Contract](https://github.com/sahaavi/New-Venture-s-Compass-R/blob/main/doc/team-contract.md)
