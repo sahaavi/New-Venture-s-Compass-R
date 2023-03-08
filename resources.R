@@ -224,9 +224,55 @@ app$layout(
                   ))
                 ))
               )),
+              # end of home tab
               # Resources Tab
               dbcTab(label = 'Resources', children = list(
-                htmlH4("Financial Consideration")
+                dbcRow(list(
+                  htmlH5("Financial Consideration"),
+                  htmlP("As the next step, we think about knowledge of different resources available or necessary for the business and their supply and demand. \
+                                    First is the finance or credit related information.")
+                )),
+                dbcRow(list(
+                  dbcCol(list(
+                    htmlH6("Tracking Interest Rate Spread: Lending Rate Minus Deposit Rate (%)"),
+                    htmlIframe(
+                      id='int_line',
+                      style = list(
+                        borderWidth = "0",
+                        width = "100%",
+                        height = "250px"
+                      )
+                    )
+                  ))  
+                )),
+                dbcRow(list(
+                  htmlH5("Non-Financial Consideration"),
+                  htmlP("Other type of resources available or necessary for the business is labor related. Information regarding them is provided below.")
+                )),
+                dbcRow(list(
+                  dbcCol(list(
+                    htmlH6("Unemployment Rates between Labor Force with Basic, Intermediate, and Advanced Education"),
+                    htmlIframe(
+                      id='ur_bar',
+                      style = list(
+                        borderWidth = "0",
+                        width = "100%",
+                        height = "350px"
+                      )
+                    )
+                  )),
+                  dbcCol(list(
+                    htmlH6("National Estimate of Total Labour Force Participation Rate for Ages 15-24"),
+                    htmlIframe(
+                      id='pr_bar',
+                      style = list(
+                        borderWidth = "0",
+                        width = "100%",
+                        height = "350px"
+                      )
+                    )
+                  ))
+                ),className="g-0")
                 
               )),
               # Logistics Tab
