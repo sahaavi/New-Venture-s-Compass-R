@@ -12,7 +12,7 @@ library(devtools)
 library(ggplot2)
 library(tidyr)
 
-bi = read.csv("data/processed/melted_data.csv")
+bi = read.csv("../data/processed/melted_data.csv")
 head(bi)
 
 app <- Dash$new(external_stylesheets = dbcThemes$BOOTSTRAP)
@@ -224,7 +224,7 @@ app$layout(
                   ))
                 ))
               )),
-              # end of home tab
+              # end of Home tab
               # Resources Tab
               dbcTab(label = 'Resources', children = list(
                 dbcRow(list(
@@ -275,15 +275,65 @@ app$layout(
                 ),className="g-0")
                 
               )),
+              # end of Resources tab
               # Logistics Tab
               dbcTab(label = "Logistics", children = list(
-                
+                dbcRow(list(
+                  htmlH5("Imports and Exports"),
+                  htmlP("Logistics of how easy and quick it is to import and export and clear customs? Information regarding them is provided below \
+                                    which marks the final items to consider.")
+                )),
+                # 1st row for bar and radar chart
+                dbcRow(list(
+                  # multi-bar chart
+                  dbcCol(list(
+                    htmlH5("Average time to clear Exports through customs (days)"),
+                    htmlIframe(
+                      id='cc_bar',
+                      style = list(
+                        borderWidth = "0",
+                        width = "100%",
+                        height = "500px"
+                      )
+                    )
+                  )),
+                  # radar chart
+                  dbcCol(list(
+                    htmlH5("Logistics Performance Index"),
+                    dccGraph(id="lpi_radar", figure={})
+                  ))
+                )),
+                # end of 1st row for bar and radar chart
+                # 2nd row for horizontal stacked bar
+                dbcRow(list(
+                  htmlH5("Time to Export (hours)"),
+                  htmlIframe(
+                    id='tte_sb',
+                    style = list(
+                      borderWidth = "0",
+                      width = "100%",
+                      height = "400px"
+                    )
+                  )
+                )),
+                # 3rd row for horizontal stacked bar
+                dbcRow(list(
+                  htmlH5("Time to Import (hours)"),
+                  htmlIframe(
+                    id='tti_sb',
+                    style = list(
+                      borderWidth = "0",
+                      width = "100%",
+                      height = "200px"
+                    )
+                  )
+                ))
               ))
             ))
             # end of tabs
           ))
             # end of tabs row
-          ))
+        ))
             # end of tabs column
         )
       # end of filters row
@@ -291,6 +341,6 @@ app$layout(
     ))
   )
 
-# callback for resources int_line
+# callback
 
 app$run_server(debug = T)
