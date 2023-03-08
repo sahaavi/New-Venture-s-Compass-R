@@ -3,7 +3,7 @@
 #install.packages("remotes")
 #remotes::install_github("plotly/dashR", upgrade = "always", force = TRUE
 # install_github('facultyai/dash-bootstrap-components@r-release')
-  
+
 library(dash)
 library(dashCoreComponents)
 library(dashHtmlComponents)
@@ -12,6 +12,7 @@ library(devtools)
 library(ggplot2)
 library(plotly)
 library(tidyr)
+library(stringr)
 
 bi <- read.csv("../data/processed/melted_data.csv")
 head(bi)
@@ -26,6 +27,9 @@ years <- lapply(
   }
 )
 
+years
+
+
 countries <- lapply(
   unique(bi$Country.Name),
   function(available_indicator) {
@@ -33,6 +37,14 @@ countries <- lapply(
          value = available_indicator)
   }
 )
+
+countries
+
+options = bi %>%
+  colnames %>%
+  purrr::map(function(col) list(label = col, value = col))
+
+options
 
 
 
@@ -49,7 +61,7 @@ app$layout(
         dbcCol(
           list(
             htmlBr(),
-            htmlH1('Filters & Controls'),
+            htmlH4('Filters & Controls'),
             htmlHr(),
             #Home tab sliders
             htmlBr(),
@@ -64,8 +76,16 @@ app$layout(
                 dccRangeSlider(
                   id='home_cts',
                   min=0,
-                  max=100,
+                  max=500,
                   value = list(0, 500),
+                  marks = list(
+                    "0" = "0",
+                    "100" = "100",
+                    "200" = "200",
+                    "300" = "300",
+                    "400" = "400",
+                    "500" = "500"
+                  ),
                   tooltip = list(
                     placement = 'bottom'
                   )
@@ -79,8 +99,15 @@ app$layout(
                 dccRangeSlider(
                   id='home_tts',
                   min=0,
-                  max=100,
+                  max=250,
                   value = list(0, 250),
+                  marks = list(
+                    "0" = "0",
+                    "60" = "60",
+                    "120" = "120",
+                    "180" = "180",
+                    "250" = "250"
+                  ),
                   tooltip = list(
                     placement = 'bottom'
                   )
@@ -101,6 +128,15 @@ app$layout(
                   id='resources_air',
                   min=0,
                   max=30,
+                  value = list(0, 30),
+                  marks = list(
+                    "0" = "0",
+                    "6" = "6",
+                    "12" = "12",
+                    "18" = "18",
+                    "24" = "24",
+                    "30" = "30"
+                  ),
                   tooltip = list(
                     placement = 'bottom'
                   )
@@ -121,6 +157,15 @@ app$layout(
                   id='logistics_tte',
                   min=0,
                   max=200,
+                  value = list(0, 200),
+                  marks = list(
+                    "0" = "0",
+                    "40" = "40",
+                    "80" = "80",
+                    "120" = "120",
+                    "160" = "160",
+                    "200" = "200"
+                  ),
                   tooltip = list(
                     placement = 'bottom'
                   )
@@ -135,6 +180,15 @@ app$layout(
                   id='logistics_tti',
                   min=0,
                   max=200,
+                  value = list(0, 200),
+                  marks = list(
+                    "0" = "0",
+                    "40" = "40",
+                    "80" = "80",
+                    "120" = "120",
+                    "160" = "160",
+                    "200" = "200"
+                  ),
                   tooltip = list(
                     placement = 'bottom'
                   )
@@ -159,7 +213,7 @@ app$layout(
           ),
           className = "col-md-3",
           style=list(border = "1px solid #d3d3d3", borderRadius = "10px")
-          ),
+        ),
         # end of side filter column
         # tabs column
         dbcCol(list(
@@ -185,25 +239,25 @@ app$layout(
               dccDropdown(
                 id = 'countries',
                 placeholder='Select countries...',
-                #value=list('Canada'),
+                value=list(),
                 options = countries,
                 multi = TRUE
-                )
+              )
             ),
             dbcCol(
               # dropdown for years
               dccDropdown(
                 id = 'years',
                 placeholder= 'Select years...',
-                #value=list('2014'),
+                value=list(),
                 options = years,
                 multi = TRUE
               )
             )
             # end of top filters portion
             
-            )),
-            # end of top filters row
+          )),
+          # end of top filters row
           htmlBr(),
           # tabs row
           dbcRow(list(
@@ -215,7 +269,7 @@ app$layout(
                 dbcRow(list(
                   dbcCol(list(
                     htmlP('Understanding the geographic location of the country is very important. This helps to know the neighboring countries, ports etc.'), 
-                    htmlIframe(
+                    dccGraph(
                       id='hm_map',
                       style = list(
                         borderWidth = "0",
@@ -233,8 +287,9 @@ app$layout(
                 )),
                 dbcRow(list(
                   dbcCol(list(
-                    htmlIframe(
-                      id='hm_line',  style = list(
+                    dccGraph(
+                      id='hm_line',  
+                      style = list(
                         borderWidth = "0",
                         width = "100%",
                         height = "350px"
@@ -271,7 +326,7 @@ app$layout(
                 dbcRow(list(
                   dbcCol(list(
                     htmlH6("Unemployment Rates between Labor Force with Basic, Intermediate, and Advanced Education"),
-                    htmlIframe(
+                    dccGraph(
                       id='ur_bar',
                       style = list(
                         borderWidth = "0",
@@ -282,7 +337,7 @@ app$layout(
                   )),
                   dbcCol(list(
                     htmlH6("National Estimate of Total Labour Force Participation Rate for Ages 15-24"),
-                    htmlIframe(
+                    dccGraph(
                       id='pr_bar',
                       style = list(
                         borderWidth = "0",
@@ -307,7 +362,7 @@ app$layout(
                   # multi-bar chart
                   dbcCol(list(
                     htmlH5("Average time to clear Exports through customs (days)"),
-                    htmlIframe(
+                    dccGraph(
                       id='cc_bar',
                       style = list(
                         borderWidth = "0",
@@ -326,7 +381,7 @@ app$layout(
                 # 2nd row for horizontal stacked bar
                 dbcRow(list(
                   htmlH5("Time to Export (hours)"),
-                  htmlIframe(
+                  dccGraph(
                     id='tte_sb',
                     style = list(
                       borderWidth = "0",
@@ -338,7 +393,7 @@ app$layout(
                 # 3rd row for horizontal stacked bar
                 dbcRow(list(
                   htmlH5("Time to Import (hours)"),
-                  htmlIframe(
+                  dccGraph(
                     id='tti_sb',
                     style = list(
                       borderWidth = "0",
@@ -351,27 +406,30 @@ app$layout(
             ))
             # end of tabs
           ))
-            # end of tabs row
+          # end of tabs row
         ))
-            # end of tabs column
-        )
-      # end of filters row
+        # end of tabs column
       )
-    ))
-  )
-  
-# Resources callback
+      # end of filters row
+    )
+  ))
+)
+# --HOME CALLBACK--
+
+# --RESOURCES CALLBACK--
+#Line chart (interest rate)
 app$callback(
-  list(output(id = 'int_line', property = 'figure')),
+  output(id = 'int_line', property = 'figure'),
   list(input(id = 'years', property = 'value'),
        input(id = 'countries', property = 'value')),
   
-  function(input1, input2) {
+  function(years, countries) {
+    
     series_name <- 'Interest rate spread (lending rate minus deposit rate, %)'
     p <- bi %>%
       filter(Series.Name == series_name, 
-             year %in% input1, 
-             Country.Name %in% input2) %>%
+             year %in% years, 
+             Country.Name %in% countries) %>%
       ggplot() +
       aes(x = year, y = value, color = Country.Name) +
       geom_point(shape = "circle") +
@@ -384,5 +442,58 @@ app$callback(
     ggplotly(p)
   }
 )
+
+#Bar chart (unemployment)
+app$callback(
+  output(id = 'ur_bar', property = 'figure'),
+  list(input(id = 'years', property = 'value'),
+       input(id = 'countries', property = 'value')),
+  
+  function(years, countries) {
+    
+    series_name <- list('Unemployment with basic education (% of total labor force with basic education)', 
+                        'Unemployment with intermediate education (% of total labor force with intermediate education)',
+                        'Unemployment with advanced education (% of total labor force with advanced education)')
+    p <- bi %>%
+      filter(Series.Name %in% series_name, 
+             year %in% years, 
+             Country.Name %in% countries) %>%
+      mutate(education_level = str_extract(Series.Name, "Unemployment with (\\w+) education")) %>%
+      ggplot() +
+      aes(x = Country.Name, y = value, color = education_level) +
+      geom_bar() +
+      xlab("Country") +
+      ylab ("Unemployment Rate") +
+      ggthemes::scale_color_tableau()
+    
+    ggplotly(p)
+  }
+)
+
+#Bar chart (participation)
+app$callback(
+  output(id = 'pr_bar', property = 'figure'),
+  list(input(id = 'years', property = 'value'),
+       input(id = 'countries', property = 'value')),
+  
+  function(years, countries) {
+    
+    series_name <- 'Labor force participation rate for ages 15-24, total (%) (national estimate)'
+    p <- bi %>%
+      filter(Series.Name == series_name, 
+             year %in% years, 
+             Country.Name %in% countries) %>%
+      ggplot() +
+      aes(x = value, y = Country.Name, color = Country.Name) +
+      geom_bar() +
+      xlab("Participation Rate") +
+      ylab ("Country") +
+      ggthemes::scale_color_tableau()
+    
+    ggplotly(p)
+  }
+)
+
+# --LOGISTICS CALLBACK--
 
 app$run_server(debug = F)
