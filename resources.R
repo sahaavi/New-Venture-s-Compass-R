@@ -30,10 +30,13 @@ app$layout(
             htmlDiv(
               list(
                 htmlLabel('Time to Start (days)'),
-                dccSlider(
+                dccRangeSlider(
                   id='home_tts',
                   min=0,
-                  max=100
+                  max=100,
+                  tooltip = list(
+                    placement = 'bottom'
+                  )
                 )
               )
             ),
@@ -41,10 +44,13 @@ app$layout(
             htmlDiv(
               list(
                 htmlLabel('Cost to Start (% of income per capita)'),
-                dccSlider(
+                dccRangeSlider(
                   id='home_cts',
                   min=0,
-                  max=100
+                  max=100,
+                  tooltip = list(
+                    placement = 'bottom'
+                  )
                 )
               )
             ),
@@ -53,10 +59,13 @@ app$layout(
             htmlDiv(
               list(
                 htmlLabel('Average Interest Rate (%)'),
-                dccSlider(
+                dccRangeSlider(
                   id='resources_air',
                   min=0,
-                  max=30
+                  max=30,
+                  tooltip = list(
+                    placement = 'bottom'
+                  )
                 )
               )
             ),
@@ -65,10 +74,13 @@ app$layout(
             htmlDiv(
               list(
                 htmlLabel('Time to Export (hours)'),
-                dccSlider(
+                dccRangeSlider(
                   id='logistics_tte',
                   min=0,
-                  max=200
+                  max=200,
+                  tooltip = list(
+                    placement = 'bottom'
+                  )
                 )
               )
             ),
@@ -76,16 +88,20 @@ app$layout(
             htmlDiv(
               list(
                 htmlLabel('Custom Clearance'),
-                dccSlider(
+                dccInput(
                   id='logistics_cc',
+                  placeholder = 'Value',
+                  type = 'number',
+                  inputMode = 'numeric',
                   min=0,
                   max=30,
-                  value=5
+                  value = 5
                 )
               )
             )
           ),
-          style=list(border = "1px solid #d3d3d3")
+          className = "col-md-3",
+          style=list(border = "1px solid #d3d3d3", borderRadius = "10px")
           ),
         # end of side filter column
         # tabs column
@@ -116,11 +132,39 @@ app$layout(
               )
             )
             # end of top filters portion
+            
+            )),
+            # end of top filters row
+          htmlBr(),
+          # tabs row
+          dbcRow(list(
+            # tabs
+            dbcTabs(id = 'tabs', children = list(
+              # Home Tab
+              dbcTab(label = 'Home', children = list(
+                
+              )),
+              # Resources Tab
+              dbcTab(label = 'Resources', children = list(
+                htmlH4("Financial Consideration")
+              )),
+              # Logistics Tab
+              dbcTab(label = "Logistics", children = list(
+                
+              ))
+              
             ))
+            # end of tabs
+            ))
+            # end of tabs row
           ))
+            # end of tabs column
         )
-      ), style = list('max-width' = '85%')  # Change left/right whitespace for the container
+      # end of filters row
+      )
     )
   )
+
+# callback for resources int_line
 
 app$run_server(debug = T)
