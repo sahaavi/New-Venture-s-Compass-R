@@ -1,7 +1,7 @@
 #run the following lines if dash R is not installed on computer
 
 #install.packages("remotes")
-#remotes::install_github("plotly/dashR", upgrade = "always", force = TRUE
+#remotes::install_github("plotly/dashR", upgrade = "always", force = TRUE)
 # install_github('facultyai/dash-bootstrap-components@r-release')
 
 library(dash)
@@ -14,11 +14,15 @@ library(plotly)
 library(tidyr)
 library(stringr)
 
-bi <- read.csv("../data/processed/melted_data.csv")
-head(bi)
+
 
 app <- Dash$new(external_stylesheets = dbcThemes$BOOTSTRAP)
 
+bi <- read.csv("../data/processed/melted_data.csv")
+
+
+#constructing multilist for drop down (year selection) options with label and value
+#the years variable is set to the 'options' argument in dccDropdown()
 years <- lapply(
   unique(bi$year),
   function(available_indicator) {
@@ -27,9 +31,9 @@ years <- lapply(
   }
 )
 
-years
 
-
+#constructing multilist for drop down (country selection) options with label and value
+#the countries variable is set to the 'options' argument in dccDropdown()
 countries <- lapply(
   unique(bi$Country.Name),
   function(available_indicator) {
@@ -37,16 +41,6 @@ countries <- lapply(
          value = available_indicator)
   }
 )
-
-countries
-
-options = bi %>%
-  colnames %>%
-  purrr::map(function(col) list(label = col, value = col))
-
-options
-
-
 
 app$layout(
   dbcContainer(list(
