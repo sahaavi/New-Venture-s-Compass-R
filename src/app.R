@@ -10,12 +10,31 @@ library(dashHtmlComponents)
 library(dashBootstrapComponents)
 library(devtools)
 library(ggplot2)
+library(plotly)
 library(tidyr)
 
-bi = read.csv("../data/processed/melted_data.csv")
+bi <- read.csv("../data/processed/melted_data.csv")
 head(bi)
 
 app <- Dash$new(external_stylesheets = dbcThemes$BOOTSTRAP)
+
+years <- lapply(
+  unique(bi$year),
+  function(available_indicator) {
+    list(label = available_indicator,
+         value = available_indicator)
+  }
+)
+
+countries <- lapply(
+  unique(bi$Country.Name),
+  function(available_indicator) {
+    list(label = available_indicator,
+         value = available_indicator)
+  }
+)
+
+
 
 app$layout(
   dbcContainer(list(
@@ -167,7 +186,7 @@ app$layout(
                 id = 'countries',
                 placeholder='Select countries...',
                 #value=list('Canada'),
-                options = unique(bi$Country.Name),
+                options = countries,
                 multi = TRUE
                 )
             ),
@@ -177,7 +196,7 @@ app$layout(
                 id = 'years',
                 placeholder= 'Select years...',
                 #value=list('2014'),
-                options = unique(bi$year),
+                options = years,
                 multi = TRUE
               )
             )
@@ -235,7 +254,7 @@ app$layout(
                 dbcRow(list(
                   dbcCol(list(
                     htmlH6("Tracking Interest Rate Spread: Lending Rate Minus Deposit Rate (%)"),
-                    htmlIframe(
+                    dccGraph(
                       id='int_line',
                       style = list(
                         borderWidth = "0",
@@ -340,7 +359,30 @@ app$layout(
       )
     ))
   )
+  
+# Resources callback
+app$callback(
+  list(output(id = 'int_line', property = 'figure')),
+  list(input(id = 'years', property = 'value'),
+       input(id = 'countries', property = 'value')),
+  
+  function(input1, input2) {
+    series_name <- 'Interest rate spread (lending rate minus deposit rate, %)'
+    p <- bi %>%
+      filter(Series.Name == series_name, 
+             year %in% input1, 
+             Country.Name %in% input2) %>%
+      ggplot() +
+      aes(x = year, y = value, color = Country.Name) +
+      geom_point(shape = "circle") +
+      geom_line() +
+      xlab("Time (year)") +
+      ylab ("Average Interest Rate") +
+      xlim(2014, 2019) +
+      ggthemes::scale_color_tableau()
+    
+    ggplotly(p)
+  }
+)
 
-# callback
-
-app$run_server(debug = T)
+app$run_server(debug = F)

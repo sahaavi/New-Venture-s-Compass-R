@@ -1,15 +1,51 @@
+#run the following lines if dash R is not installed on computer
+
+#install.packages("remotes")
+#remotes::install_github("plotly/dashR", upgrade = "always", force = TRUE
+# install_github('facultyai/dash-bootstrap-components@r-release')
+
 library(dash)
 library(dashCoreComponents)
 library(dashHtmlComponents)
 library(dashBootstrapComponents)
 library(devtools)
 library(ggplot2)
+library(plotly)
 library(tidyr)
 
-bi = read.csv("../data/processed/melted_data.csv")
+bi <- read.csv("../data/processed/melted_data.csv")
 head(bi)
 
 app <- Dash$new(external_stylesheets = dbcThemes$BOOTSTRAP)
+
+years <- lapply(
+  unique(bi$year),
+  function(available_indicator) {
+    list(label = available_indicator,
+         value = available_indicator)
+  }
+)
+
+years
+
+
+countries <- lapply(
+  unique(bi$Country.Name),
+  function(available_indicator) {
+    list(label = available_indicator,
+         value = available_indicator)
+  }
+)
+
+countries
+
+options = bi %>%
+  colnames %>%
+  purrr::map(function(col) list(label = col, value = col))
+
+options
+
+
 
 app$layout(
   dbcContainer(list(
@@ -134,7 +170,7 @@ app$layout(
           ),
           className = "col-md-3",
           style=list(border = "1px solid #d3d3d3", borderRadius = "10px")
-          ),
+        ),
         # end of side filter column
         # tabs column
         dbcCol(list(
@@ -161,24 +197,24 @@ app$layout(
                 id = 'countries',
                 placeholder='Select countries...',
                 #value=list('Canada'),
-                options = unique(bi$Country.Name),
+                options = countries,
                 multi = TRUE
-                )
+              )
             ),
             dbcCol(
               # dropdown for years
               dccDropdown(
                 id = 'years',
                 placeholder= 'Select years...',
-                #value=list('2014'),
-                options = unique(bi$year),
+                #value=list(2019),
+                options = years,
                 multi = TRUE
               )
             )
             # end of top filters portion
             
-            )),
-            # end of top filters row
+          )),
+          # end of top filters row
           htmlBr(),
           # tabs row
           dbcRow(list(
@@ -229,7 +265,7 @@ app$layout(
                 dbcRow(list(
                   dbcCol(list(
                     htmlH6("Tracking Interest Rate Spread: Lending Rate Minus Deposit Rate (%)"),
-                    htmlIframe(
+                    dccGraph(
                       id='int_line',
                       style = list(
                         borderWidth = "0",
@@ -326,15 +362,37 @@ app$layout(
             ))
             # end of tabs
           ))
-            # end of tabs row
+          # end of tabs row
         ))
-            # end of tabs column
-        )
-      # end of filters row
+        # end of tabs column
       )
-    ))
-  )
+      # end of filters row
+    )
+  ))
+)
 
-# callback
+# Resources callback
+app$callback(
+  output(id = 'int_line', property = 'figure'),
+  list(input(id = 'years', property = 'value'),
+       input(id = 'countries', property = 'value')),
+  
+  function(input1, input2) {
+    series_name <- 'Interest rate spread (lending rate minus deposit rate, %)'
+    p <- bi %>%
+      filter(Series.Name == series_name, 
+             year %in% input1, 
+             Country.Name %in% input2) %>%
+      ggplot() +
+      aes(x = year, y = value, color = Country.Name) +
+      geom_point(shape = "circle") +
+      geom_line() +
+      xlab("Time (year)") +
+      ylab ("Average Interest Rate") +
+      xlim(2014, 2019) +
+      ggthemes::scale_color_tableau()
+    ggplotly(p)
+  }
+)
 
 app$run_server(debug = T)
