@@ -8,7 +8,7 @@ library(dash)
 library(dashCoreComponents)
 library(dashHtmlComponents)
 library(dashBootstrapComponents)
-library(devtools)
+#library(devtools)
 library(ggplot2)
 library(plotly)
 library(tidyr)
@@ -18,9 +18,8 @@ library(stringr)
 
 app <- Dash$new(external_stylesheets = dbcThemes$BOOTSTRAP)
 
-bi <- read.csv("../data/processed/melted_data.csv")
-bi$year <- as.character(bi$year)
-
+bi <- read.csv("data/processed/melted_data.csv")
+#bi$year <- as.character(bi$year)
 
 #constructing multilist for drop down (year selection) options with label and value
 #the years variable is set to the 'options' argument in dccDropdown()
@@ -484,7 +483,7 @@ app$callback(
       xlab("Participation Rate") +
       ylab ("Country") +
       ggthemes::scale_color_tableau()
-
+    
     ggplotly(p)
   }
 )
@@ -492,3 +491,5 @@ app$callback(
 # --LOGISTICS CALLBACK--
 
 app$run_server(host = '0.0.0.0')
+
+# host = '0.0.0.0'

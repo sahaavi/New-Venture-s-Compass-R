@@ -18,7 +18,7 @@ library(stringr)
 
 app <- Dash$new(external_stylesheets = dbcThemes$BOOTSTRAP)
 
-bi <- read.csv("../data/processed/melted_data.csv")
+bi <- read.csv("data/processed/melted_data.csv")
 
 
 #constructing multilist for drop down (year selection) options with label and value
