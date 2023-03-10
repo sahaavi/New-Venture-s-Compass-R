@@ -9,6 +9,19 @@ options(repos=r)
 # ======================================================================
 
 # packages go here
-install.packages(c('readr', 'here', 'ggthemes', 'remotes', 'dashCoreComponents'))
+install.packages(c('readr', 'here', 'ggthemes', 'remotes', 'dashCoreComponents', 'dashHtmlComponents', 'ggplot2'))
 remotes::install_github("plotly/dashR", upgrade = "always")
 remotes::install_github('facultyai/dash-bootstrap-components@r-release')
+
+
+# Example R code to install packages if not already installed
+
+my_packages = c("tidyr", "plotly")
+
+install_if_missing = function(p) {
+  if (p %in% rownames(installed.packages()) == FALSE) {
+    install.packages(p)
+  }
+}
+
+invisible(sapply(my_packages, install_if_missing))
