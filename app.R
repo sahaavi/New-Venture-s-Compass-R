@@ -19,6 +19,7 @@ library(stringr)
 app <- Dash$new(external_stylesheets = dbcThemes$BOOTSTRAP)
 
 bi <- read.csv("../data/processed/melted_data.csv")
+bi$year <- as.character(bi$year)
 
 
 #constructing multilist for drop down (year selection) options with label and value
@@ -483,11 +484,11 @@ app$callback(
       xlab("Participation Rate") +
       ylab ("Country") +
       ggthemes::scale_color_tableau()
-    
+
     ggplotly(p)
   }
 )
 
 # --LOGISTICS CALLBACK--
 
-app$run_server(debug = F)
+app$run_server(host = '0.0.0.0')
