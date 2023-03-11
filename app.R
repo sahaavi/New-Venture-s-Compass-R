@@ -290,8 +290,18 @@ app$layout(
                 dbcRow(list(
                   dbcCol(list(
                     dccGraph(
-                      #id='hm_line',
-                      id='bar-plot',
+                      id='hm_line',
+                      #id='bar-plot',
+                      style = list(
+                        borderWidth = "0",
+                        width = "100%",
+                        height = "350px"
+                      )
+                    )
+                  )),
+                  dbcCol(list(
+                    dccGraph(
+                      id='hm_line2',
                       style = list(
                         borderWidth = "0",
                         width = "100%",
@@ -434,16 +444,55 @@ app$callback(
   }
 )
 
+
 app$callback(
-  output('bar-plot', 'figure'),
-  list(input('plot-area', 'selectedData')),
+  output(id = 'hm_line', property = 'figure'),
+  list(input(id = 'years', property = 'value'),
+       input(id = 'countries', property = 'value')),
+  
+  function(years, countries) {
+    
+    series_name <- 'Cost of business start-up procedures (% of GNI per capita)'
+    p1 <- ggplot(bi %>%
+                  filter(Series.Name == series_name, 
+                         year %in% years, 
+                         Country.Name %in% countries)) +
+      aes(x = year, y = value, color = Country.Name, text = Country.Name) +
+      geom_point(shape = "circle") +
+      xlab("Time (year)") +
+      ylab ("Cost of business start-up procedures") +
+      xlim(2014, 2019) +
+      ggthemes::scale_color_tableau()
+    
+    #p2 <- ggplot(msleep) +
+    #  aes(x=vore) +
+    #  geom_bar(stat='count')
+    # , ggplotly(p2)
+    
+    ggplotly(p1, tooltip = 'text') %>% layout(dragmode = 'select')
+  }
+)
+
+app$callback(
+  output('hm_line2', 'figure'),
+  list(input('hm_line', 'selectedData')),
   function(selected_data) {
-    animal_names <- selected_data[[1]] %>% purrr::map_chr('text')
-    p <- ggplot(msleep %>% filter(name %in% animal_names)) +
-      aes(y = vore,
-          fill = vore) +
-      geom_bar(width = 0.6) +
-      ggthemes::scale_fill_tableau()
+    sel_ctry <- selected_data[[1]] %>% purrr::map_chr('text')
+    print(bi %>% filter(Country.Name %in% sel_ctry))
+    toString(selected_data)
+    #sel_ctry <- list('Afghanistan')
+    series_name <- 'Time required to start a business (days)'
+    p <- ggplot(bi %>%
+                   filter(Series.Name == series_name, 
+                          #year %in% years, 
+                          Country.Name %in% sel_ctry)) +
+      aes(x = year, y = value, color = Country.Name,text = Country.Name) +
+      geom_point(shape = "circle") +
+      xlab("Time (year)") +
+      ylab ("Time of business start-up procedures") +
+      xlim(2014, 2019) +
+      ggthemes::scale_color_tableau()
+
     ggplotly(p, tooltip = 'text') %>% layout(dragmode = 'select')
   }
 )
