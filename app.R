@@ -246,8 +246,15 @@ app$layout(
                 value=list(),
                 options = years,
                 multi = TRUE
-              )
+              )),
+            dbcCol(
+                # dropdown for temporary check,
+              dccDropdown(
+                id='col-select',
+                options = msleep %>% colnames %>% purrr::map(function(col) list(label = col, value = col)),
+                value='bodywt')
             )
+            
             # end of top filters portion
             
           )),
@@ -262,14 +269,15 @@ app$layout(
                 dbcRow(htmlH5("Geographic Location")),
                 dbcRow(list(
                   dbcCol(list(
-                    htmlP('Understanding the geographic location of the country is very important. This helps to know the neighboring countries, ports etc.'), 
+                    htmlP('TUnderstanding the geographic location of the country is very important. This helps to know the neighboring countries, ports etc.'), 
                     dccGraph(
-                      id='hm_map',
-                      style = list(
-                        borderWidth = "0",
-                        width = "100%",
-                        height = "250px"
-                      )
+                      #id='hm_map',
+                      id='plot-area'#,
+                      #style = list(
+                       # borderWidth = "0",
+                        #width = "100%",
+                        #height = "250px"
+                      #)
                     )
                   ))   
                 )),
@@ -282,7 +290,8 @@ app$layout(
                 dbcRow(list(
                   dbcCol(list(
                     dccGraph(
-                      id='hm_line',  
+                      #id='hm_line',
+                      id='bar-plot',
                       style = list(
                         borderWidth = "0",
                         width = "100%",
@@ -409,6 +418,35 @@ app$layout(
   ))
 )
 # --HOME CALLBACK--
+app$callback(
+  output('plot-area', 'figure'),
+  list(input('col-select', 'value')),
+  function(xcol) {
+    p <- ggplot(msleep) +
+      aes(x = !!sym(xcol),
+          y = sleep_total,
+          color = vore,
+          text = name) +
+      geom_point() +
+      scale_x_log10() +
+      ggthemes::scale_color_tableau()
+    ggplotly(p, tooltip = 'text') %>% layout(dragmode = 'select')
+  }
+)
+
+app$callback(
+  output('bar-plot', 'figure'),
+  list(input('plot-area', 'selectedData')),
+  function(selected_data) {
+    animal_names <- selected_data[[1]] %>% purrr::map_chr('text')
+    p <- ggplot(msleep %>% filter(name %in% animal_names)) +
+      aes(y = vore,
+          fill = vore) +
+      geom_bar(width = 0.6) +
+      ggthemes::scale_fill_tableau()
+    ggplotly(p, tooltip = 'text') %>% layout(dragmode = 'select')
+  }
+)
 
 # --RESOURCES CALLBACK--
 #Line chart (interest rate)
