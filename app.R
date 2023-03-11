@@ -23,7 +23,7 @@ bi <- read.csv("data/processed/melted_data.csv")
 
 #constructing multilist for drop down (year selection) options with label and value
 #the years variable is set to the 'options' argument in dccDropdown()
-years <- lapply(
+years_1 <- lapply(
   unique(bi$year),
   function(available_indicator) {
     list(label = available_indicator,
@@ -34,7 +34,7 @@ years <- lapply(
 
 #constructing multilist for drop down (country selection) options with label and value
 #the countries variable is set to the 'options' argument in dccDropdown()
-countries <- lapply(
+countries_1 <- lapply(
   unique(bi$Country.Name),
   function(available_indicator) {
     list(label = available_indicator,
@@ -233,8 +233,8 @@ app$layout(
               dccDropdown(
                 id = 'countries',
                 placeholder='Select countries...',
-                value=list(),
-                options = countries,
+                value='Afghanistan',
+                options = countries_1,
                 multi = TRUE
               )
             ),
@@ -243,8 +243,8 @@ app$layout(
               dccDropdown(
                 id = 'years',
                 placeholder= 'Select years...',
-                value=list(),
-                options = years,
+                value='2014',
+                options = years_1,
                 multi = TRUE
               )),
             dbcCol(
@@ -458,7 +458,8 @@ app$callback(
                          year %in% years, 
                          Country.Name %in% countries)) +
       aes(x = year, y = value, color = Country.Name, text = Country.Name) +
-      geom_point(shape = "circle") +
+      geom_point(shape = "circle",stat='identity') +
+      geom_line(stat='identity') +
       xlab("Time (year)") +
       ylab ("Cost of business start-up procedures") +
       xlim(2014, 2019) +
@@ -469,7 +470,7 @@ app$callback(
     #  geom_bar(stat='count')
     # , ggplotly(p2)
     
-    ggplotly(p1, tooltip = 'text') %>% layout(dragmode = 'select')
+    ggplotly(p1, tooltip = 'text') %>% layout(dragmode = 'hover')
   }
 )
 
@@ -479,15 +480,17 @@ app$callback(
   function(selected_data) {
     sel_ctry <- selected_data[[1]] %>% purrr::map_chr('text')
     print(bi %>% filter(Country.Name %in% sel_ctry))
-    toString(selected_data)
-    #sel_ctry <- list('Afghanistan')
+    print(toString(selected_data))
+    sel_ctry <- list('Afghanistan','Canada')
+    print(sel_ctry)
     series_name <- 'Time required to start a business (days)'
     p <- ggplot(bi %>%
                    filter(Series.Name == series_name, 
                           #year %in% years, 
                           Country.Name %in% sel_ctry)) +
       aes(x = year, y = value, color = Country.Name,text = Country.Name) +
-      geom_point(shape = "circle") +
+      geom_point(shape = "circle",stat='identity') +
+      geom_line(stat='identity') +
       xlab("Time (year)") +
       ylab ("Time of business start-up procedures") +
       xlim(2014, 2019) +
