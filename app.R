@@ -221,7 +221,7 @@ app$layout(
           dbcRow(list(
             htmlP('Hi there! Congratulations on thinking about starting a new business! \
                 This dashboard is an interactive guide that helps to understand different aspects that are important in starting a business.'),
-            htmlP('In default mode, it shows data for 10 countries that are in World Bank datase. \
+            htmlP('In default mode, it shows data for 5 countries that are in World Bank datase. \
                 We recommend to start browsing through the tabs to get an idea of different aspects. \
                 Once finished, you can choose years and countries for your own assessment, Remember, both inputs are mandatory. \
                 Sliders are present on the side to further fine tune your selection. \
@@ -263,7 +263,7 @@ app$layout(
                 dbcRow(htmlH5("Geographic Location")),
                 dbcRow(list(
                   dbcCol(list(
-                    htmlP('TUnderstanding the geographic location of the country is very important. This helps to know the neighboring countries, ports etc.'), 
+                    htmlP('Understanding the geographic location of the country is very important. This helps to know the neighboring countries, ports etc.'), 
                     dccGraph(
                       #id='hm_map',
                       id='plot-area'#,
@@ -425,12 +425,19 @@ app$layout(
 app$callback(
   output('plot-area', 'figure'),
   list(input(id = 'years', property = 'value'),
-       input(id = 'countries', property = 'value')),
+       input(id = 'countries', property = 'value'),
+       input(id = 'home_cts', property = 'value')),
   
-  function(years, countries) {
+  function(years, countries, home_cts) {
 #      value <- 'Australia'
-      df <- df %>%
-        filter(country %in% countries)
+      series_name <- 'Cost of business start-up procedures (% of GNI per capita)'
+      df2 <- (bi %>% filter(Series.Name == series_name, 
+             year %in% years, 
+             Country.Name %in% countries,
+             value < home_cts[[2]]))
+      ctr <- unique(df2$Country.Name)
+      print(ctr)
+      df <- df %>% filter(country %in% ctr)
       p <- plot_geo(df, locationmode = 'world', sizes = c(5, 250)) %>%
         add_markers(x = ~longitude, y = ~latitude, text = ~country, hoverinfo = 'text')
     
@@ -442,15 +449,18 @@ app$callback(
 app$callback(
   output(id = 'hm_line', property = 'figure'),
   list(input(id = 'years', property = 'value'),
-       input(id = 'countries', property = 'value')),
+       input(id = 'countries', property = 'value'),
+       input(id = 'home_cts', property = 'value')),
   
-  function(years, countries) {
-    
+  function(years, countries,home_cts) {
+    #print(home_cts)
+    #print(home_cts[[2]])
     series_name <- 'Cost of business start-up procedures (% of GNI per capita)'
     p1 <- ggplot(bi %>%
                   filter(Series.Name == series_name, 
                          year %in% years, 
-                         Country.Name %in% countries)) +
+                         Country.Name %in% countries,
+                         value < home_cts[[2]])) +
       aes(x = year, y = value, color = Country.Name, text = Country.Name) +
       geom_point(shape = "circle",stat='identity') +
       geom_line(stat='identity') +
@@ -471,19 +481,20 @@ app$callback(
 app$callback(
   output('hm_line2', 'figure'),
   list(input(id = 'years', property = 'value'),
-       input(id = 'countries', property = 'value')),
-  
-  function(years, countries) {
-    #sel_ctry <- selected_data[[1]] %>% purrr::map_chr('text')
-    #print(bi %>% filter(Country.Name %in% countries))
-    #print(toString(selected_data))
-    #sel_ctry <- list('Afghanistan','Canada')
-    #print(sel_ctry)
+       input(id = 'countries', property = 'value'),
+       input(id = 'home_cts', property = 'value')),  
+  function(years, countries,home_cts) {
+    series_name_1 <- 'Cost of business start-up procedures (% of GNI per capita)'
+    df2 <- (bi %>% filter(Series.Name == series_name_1, 
+                          year %in% years, 
+                          Country.Name %in% countries,
+                          value < home_cts[[2]]))
+    ctr <- unique(df2$Country.Name)
     series_name <- 'Time required to start a business (days)'
     p <- ggplot(bi %>%
                    filter(Series.Name == series_name, 
                           year %in% years, 
-                          Country.Name %in% countries)) +
+                          Country.Name %in% ctr)) +
       aes(x = year, y = value, color = Country.Name,text = Country.Name) +
       geom_point(shape = "circle",stat='identity') +
       geom_line(stat='identity') +
