@@ -24,8 +24,8 @@ g. Restrict inputs to 10 countries (nice to have).
 ### Dashboard Advantages
 a. There is text embedded above each tab which gives the reader a sense of what they are looking for and why its necessary. 
 This story telling approach will guide user interactively and with rationale to select countries.
-
 b. Dashboard has a default view with 5 countries, this makes anyone get quickly familiar with the application.
+c. Having built the framework in Python, it really helped to progress in R but not able to get the interactivity between plots work yet.
  
 ## Dashboard Limitations
 a. Data is available only till 2019, new data will be available only in 2024. Till then, history is limited for decision.
