@@ -338,7 +338,7 @@ app$layout(
                       style = list(
                         borderWidth = "0",
                         width = "100%",
-                        height = "350px"
+                        height = "500px"
                       )
                     )
                   )),
@@ -349,7 +349,7 @@ app$layout(
                       style = list(
                         borderWidth = "0",
                         width = "100%",
-                        height = "350px"
+                        height = "500px"
                       )
                     )
                   ))
@@ -549,13 +549,15 @@ app$callback(
       filter(Series.Name %in% series_name, 
              year %in% years, 
              Country.Name %in% countries) %>%
-      mutate(education_level = str_extract(Series.Name, "Unemployment with (\\w+) education")) %>%
+      mutate(education_level = str_extract(Series.Name, "(basic|intermediate|advanced)")) %>%
       ggplot() +
-      aes(x = Country.Name, y = value, color = education_level) +
-      geom_bar() +
+      aes(x = Country.Name, y = value, fill = education_level) +
+      geom_bar(stat = "identity") +
       xlab("Country") +
       ylab ("Unemployment Rate") +
-      ggthemes::scale_color_tableau()
+      labs(fill = "education_level") +
+      ggthemes::scale_color_tableau() +
+      theme(axis.text.x = element_text(angle = 90, hjust = 1))
     
     ggplotly(p)
   }
@@ -575,8 +577,8 @@ app$callback(
              year %in% years, 
              Country.Name %in% countries) %>%
       ggplot() +
-      aes(x = value, y = Country.Name, color = Country.Name) +
-      geom_bar() +
+      aes(x = value, y = Country.Name, fill = Country.Name) +
+      geom_bar(stat = "identity") +
       xlab("Participation Rate") +
       ylab ("Country") +
       ggthemes::scale_color_tableau()
