@@ -372,14 +372,6 @@ app$layout(
                     htmlH5("Average time to clear Exports through customs (days)"),
                     dccGraph(
                       id='cc_bar'
-<<<<<<< HEAD
-=======
-                      # style = list(
-                      #   borderWidth = "0",
-                      #   width = "100%",
-                      #   height = "500px"
-                      # )
->>>>>>> d6932492ce66402df878ba9d449a96224e778b61
                     )
                   )),
                   # radar chart
@@ -659,8 +651,6 @@ app$callback(
     }
 )
 
-<<<<<<< HEAD
-=======
 # callback for logistics cc_bar
 app$callback(
   output(id = "cc_bar", property = "figure"),
@@ -729,7 +719,7 @@ app$callback(
   }
 )
 
->>>>>>> d6932492ce66402df878ba9d449a96224e778b61
+
 
 # callback for logistics lpi_radar
 app$callback(
@@ -814,13 +804,8 @@ app$callback(
 app$callback(
   output(id="tti_sb", property="figure"),
   list(input(id="countries", property="value"),
-<<<<<<< HEAD
    input(id="years", property="value"),
    input(id="logistics_tti", property="value")),
-=======
-       input(id="years", property="value"),
-       input(id="logistics_tti", property="value")),
->>>>>>> d6932492ce66402df878ba9d449a96224e778b61
   
   function(countries, years, hours) {
     filtered_export <- bi %>% 
@@ -843,11 +828,6 @@ app$callback(
   }
 )
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> d6932492ce66402df878ba9d449a96224e778b61
 app$run_server(debug = F)
 
 # host = '0.0.0.0'
