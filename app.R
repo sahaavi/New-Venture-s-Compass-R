@@ -370,12 +370,12 @@ app$layout(
                   dbcCol(list(
                     htmlH5("Average time to clear Exports through customs (days)"),
                     dccGraph(
-                      id='cc_bar',
-                      style = list(
-                        borderWidth = "0",
-                        width = "100%",
-                        height = "500px"
-                      )
+                      id='cc_bar'
+                      # style = list(
+                      #   borderWidth = "0",
+                      #   width = "100%",
+                      #   height = "500px"
+                      # )
                     )
                   )),
                   # radar chart
@@ -589,6 +589,182 @@ app$callback(
 
 # --LOGISTICS CALLBACK--
 
-app$run_server(host = '0.0.0.0')
+# callback for logistics cc_bar
+app$callback(
+  output(id = "cc_bar", property = "figure"),
+  list(
+    input(id = "countries", property = "value"),
+    input(id = "years", property = "value"),
+    input(id = "logistics_cc", property = "value")
+  ),
+  function(years, countries, logistics_cc) {
+    if (is.null(countries)) {
+      countries <- c('Afghanistan', 'Albania', 'Algeria', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan')
+    }
+    
+    if (is.null(years)) {
+      years <- '2014'
+    }
+    
+    if (is.null(logistics_cc)) {
+      logistics_cc <- 30
+    }
+    # fig <- plot_ly(
+    #         data = bi %>%
+    #           group_by(year) %>%
+    #           filter(Series.Name == "Average time to clear exports through customs (days)",
+    #                 Country.Name %in% countries,
+    #                 year %in% years,
+    #                 value < logistics_cc
+    #           ),
+    #         x = ~year,
+    #         y = ~value,
+    #         color = ~Country.Name,
+    #         type = "bar"
+    #       )
+    # fig
+    
+    # p <- bi %>%
+    #   filter(Series.Name == "Average time to clear exports through customs (days)",
+    #          Country.Name %in% countries,
+    #          year %in% years,
+    #          value < logistics_cc
+    #   ) %>%
+    #   ggplot() +
+    #   
+    #   aes(x = Country.Name, y = value, color = Country.Name) +
+    #   geom_col() +
+    #   facet_wrap(~year) +
+    #   labs(x=NULL, y="Days") +
+    #   geom_text(aes(label=value), position=position_stack(vjust=0.5)) +
+    #   geom_label(aes(label=Country.Name), position=position_stack(vjust=-0.5)) +
+    #   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    #   ggtitle(NULL) +
+    #   labs(tooltip = c("Country Name", "year", "value"))
+    
+    p <- bi %>%
+      filter(Series.Name == "Average time to clear exports through customs (days)",
+             Country.Name %in% countries,
+             year %in% years,
+             value < logistics_cc
+      ) %>%
+      ggplot() +
+      aes(x = year, y = value, fill = Country.Name) +
+      geom_bar(stat = "identity", position = "dodge") +
+      ggthemes::scale_color_tableau()
+    
+    ggplotly(p)
+  }
+)
+
+
+# callback for logistics lpi_radar
+app$callback(
+  output(id="lpi_radar", property="figure"),
+  list(
+    input(id="countries", property="value"),
+    input(id="years", property="value")
+  ),
+  function(countries, years) {
+    max <- max(bi[bi$Series.Name == "Logistics performance index: Overall (1=low to 5=high)", "value"], na.rm = TRUE)
+    
+    min <- min(bi[bi$Series.Name == "Logistics performance index: Overall (1=low to 5=high)", "value"], na.rm = TRUE)
+    
+    if (is.null(countries)) {
+      countries <- c('Afghanistan', 'Albania', 'Algeria', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan')
+    }
+    
+    if (is.null(years)) {
+      years <- '2014'
+    }
+    
+    # radar chart
+    fig <- plot_ly(
+      type = 'scatterpolar',
+      fill = 'toself'
+    ) 
+    # adding traces
+    for (i in countries) {
+      
+      add_trace(
+        r <- bi[bi$Series.Name == "Logistics performance index: Overall (1=low to 5=high)" &
+                  bi$Country.Name == i &
+                  bi$year %in% years, "value"],
+        theta=years,
+        name=i
+      )
+    }
+    
+    fig <- fig %>%
+      layout(
+        polar = list(
+          radialaxis = list(
+            visible = T,
+            range = c(min, max)
+          )
+        )
+      )
+    fig
+  }
+)
+
+# callback for logistics tte_sb
+app$callback(
+  output(id="tte_sb", property="figure"),
+  list(input(id="countries", property="value"),
+       input(id="years", property="value"),
+       input(id="logistics_tte", property="value")),
+  
+  function(countries, years, hours) {
+    filtered_export <- bi %>% 
+      filter(Country.Name %in% countries,
+             year %in% years,
+             Series.Name %in% c('Time to export, border compliance (hours)', 'Time to export, documentary compliance (hours)'),
+             value >= hours[1],
+             value <= hours[2])
+    
+    chart <- filtered_export %>%
+      ggplot(aes(y = year, x = value, fill = Country.Name)) +
+      geom_bar(stat = 'identity', orientation = 'horizontal') +
+      facet_grid(Series.Name ~ ., labeller = labeller(Series.Name = label_both(angle = 0))) +
+      labs(y = NULL, x = 'Days') +
+      geom_text(aes(label = value), hjust = -0.1) +
+      theme(legend.position = 'bottom') +
+      ggtitle('Time to Export')
+    
+    ggplotly(chart)
+  }
+)
+
+
+# callback for logistics tti_sb
+app$callback(
+  output(id="tti_sb", property="figure"),
+  list(input(id="countries", property="value"),
+       input(id="years", property="value"),
+       input(id="logistics_tti", property="value")),
+  
+  function(countries, years, hours) {
+    filtered_export <- bi %>% 
+      filter(Country.Name %in% countries,
+             year %in% years,
+             Series.Name %in% c('Time to import, border compliance (hours)', 'Time to import, documentary compliance (hours)'),
+             value >= hours[1],
+             value <= hours[2])
+    
+    chart <- filtered_export %>%
+      ggplot(aes(y = year, x = value, fill = Country.Name)) +
+      geom_bar(stat = 'identity', orientation = 'horizontal') +
+      facet_grid(Series.Name ~ ., labeller = labeller(Series.Name = label_both(angle = 0))) +
+      labs(y = NULL, x = 'Days') +
+      geom_text(aes(label = value), hjust = -0.1) +
+      theme(legend.position = 'bottom') +
+      ggtitle('Time to Import')
+    
+    ggplotly(chart)
+  }
+)
+
+app$run_server(debug = F)
 
 # host = '0.0.0.0'
