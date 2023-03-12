@@ -20,6 +20,8 @@ library(dplyr)
 app <- Dash$new(external_stylesheets = dbcThemes$BOOTSTRAP)
 
 bi <- read.csv("data/processed/melted_data.csv")
+df <- read.csv("data/raw/world_country_and_usa_states_latitude_and_longitude_values.csv")
+
 #bi$year <- as.character(bi$year)
 
 #constructing multilist for drop down (year selection) options with label and value
@@ -220,7 +222,7 @@ app$layout(
           dbcRow(list(
             htmlP('Hi there! Congratulations on thinking about starting a new business! \
                 This dashboard is an interactive guide that helps to understand different aspects that are important in starting a business.'),
-            htmlP('In default mode, it shows data for 10 countries that are in World Bank datase. \
+            htmlP('In default mode, it shows data for 5 countries that are in World Bank datase. \
                 We recommend to start browsing through the tabs to get an idea of different aspects. \
                 Once finished, you can choose years and countries for your own assessment, Remember, both inputs are mandatory. \
                 Sliders are present on the side to further fine tune your selection. \
@@ -234,7 +236,7 @@ app$layout(
               dccDropdown(
                 id = 'countries',
                 placeholder='Select countries...',
-                value=list(),
+                value=list('Afghanistan','Australia','Canada','Albania','Algeria'),
                 options = countries,
                 multi = TRUE
               )
@@ -244,11 +246,10 @@ app$layout(
               dccDropdown(
                 id = 'years',
                 placeholder= 'Select years...',
-                value=list(),
+                value=list('2014','2015','2016','2017','2018','2019'),
                 options = years,
                 multi = TRUE
-              )
-            )
+              ))
             # end of top filters portion
             
           )),
@@ -265,12 +266,13 @@ app$layout(
                   dbcCol(list(
                     htmlP('Understanding the geographic location of the country is very important. This helps to know the neighboring countries, ports etc.'), 
                     dccGraph(
-                      id='hm_map',
-                      style = list(
-                        borderWidth = "0",
-                        width = "100%",
-                        height = "250px"
-                      )
+                      #id='hm_map',
+                      id='plot-area'#,
+                      #style = list(
+                       # borderWidth = "0",
+                        #width = "100%",
+                        #height = "250px"
+                      #)
                     )
                   ))   
                 )),
@@ -283,7 +285,18 @@ app$layout(
                 dbcRow(list(
                   dbcCol(list(
                     dccGraph(
-                      id='hm_line',  
+                      id='hm_line',
+                      #id='bar-plot',
+                      style = list(
+                        borderWidth = "0",
+                        width = "100%",
+                        height = "350px"
+                      )
+                    )
+                  )),
+                  dbcCol(list(
+                    dccGraph(
+                      id='hm_line2',
                       style = list(
                         borderWidth = "0",
                         width = "100%",
@@ -326,7 +339,7 @@ app$layout(
                       style = list(
                         borderWidth = "0",
                         width = "100%",
-                        height = "350px"
+                        height = "500px"
                       )
                     )
                   )),
@@ -337,7 +350,7 @@ app$layout(
                       style = list(
                         borderWidth = "0",
                         width = "100%",
-                        height = "350px"
+                        height = "500px"
                       )
                     )
                   ))
@@ -359,6 +372,14 @@ app$layout(
                     htmlH5("Average time to clear Exports through customs (days)"),
                     dccGraph(
                       id='cc_bar'
+<<<<<<< HEAD
+=======
+                      # style = list(
+                      #   borderWidth = "0",
+                      #   width = "100%",
+                      #   height = "500px"
+                      # )
+>>>>>>> d6932492ce66402df878ba9d449a96224e778b61
                     )
                   )),
                   # radar chart
@@ -405,6 +426,90 @@ app$layout(
   ))
 )
 # --HOME CALLBACK--
+app$callback(
+  output('plot-area', 'figure'),
+  list(input(id = 'years', property = 'value'),
+       input(id = 'countries', property = 'value'),
+       input(id = 'home_cts', property = 'value')),
+  
+  function(years, countries, home_cts) {
+#      value <- 'Australia'
+      series_name <- 'Cost of business start-up procedures (% of GNI per capita)'
+      df2 <- (bi %>% filter(Series.Name == series_name, 
+             year %in% years, 
+             Country.Name %in% countries,
+             value < home_cts[[2]]))
+      ctr <- unique(df2$Country.Name)
+      print(ctr)
+      df <- df %>% filter(country %in% ctr)
+      p <- plot_geo(df, locationmode = 'world', sizes = c(5, 250)) %>%
+        add_markers(x = ~longitude, y = ~latitude, text = ~country, hoverinfo = 'text')
+    
+    ggplotly(p, tooltip = 'text') %>% layout(dragmode = 'select')
+  }
+)
+
+
+app$callback(
+  output(id = 'hm_line', property = 'figure'),
+  list(input(id = 'years', property = 'value'),
+       input(id = 'countries', property = 'value'),
+       input(id = 'home_cts', property = 'value')),
+  
+  function(years, countries,home_cts) {
+    #print(home_cts)
+    #print(home_cts[[2]])
+    series_name <- 'Cost of business start-up procedures (% of GNI per capita)'
+    p1 <- ggplot(bi %>%
+                  filter(Series.Name == series_name, 
+                         year %in% years, 
+                         Country.Name %in% countries,
+                         value < home_cts[[2]])) +
+      aes(x = year, y = value, color = Country.Name, text = Country.Name) +
+      geom_point(shape = "circle",stat='identity') +
+      geom_line(stat='identity') +
+      xlab("Time (year)") +
+      ylab ("Cost of business start-up procedures") +
+      xlim(2014, 2019) +
+      ggthemes::scale_color_tableau()
+    
+    #p2 <- ggplot(msleep) +
+    #  aes(x=vore) +
+    #  geom_bar(stat='count')
+    # , ggplotly(p2)
+    
+    ggplotly(p1, tooltip = 'text') %>% layout(dragmode = 'hover')
+  }
+)
+
+app$callback(
+  output('hm_line2', 'figure'),
+  list(input(id = 'years', property = 'value'),
+       input(id = 'countries', property = 'value'),
+       input(id = 'home_cts', property = 'value')),  
+  function(years, countries,home_cts) {
+    series_name_1 <- 'Cost of business start-up procedures (% of GNI per capita)'
+    df2 <- (bi %>% filter(Series.Name == series_name_1, 
+                          year %in% years, 
+                          Country.Name %in% countries,
+                          value < home_cts[[2]]))
+    ctr <- unique(df2$Country.Name)
+    series_name <- 'Time required to start a business (days)'
+    p <- ggplot(bi %>%
+                   filter(Series.Name == series_name, 
+                          year %in% years, 
+                          Country.Name %in% ctr)) +
+      aes(x = year, y = value, color = Country.Name,text = Country.Name) +
+      geom_point(shape = "circle",stat='identity') +
+      geom_line(stat='identity') +
+      xlab("Time (year)") +
+      ylab ("Time of business start-up procedures") +
+      xlim(2014, 2019) +
+      ggthemes::scale_color_tableau()
+
+    ggplotly(p, tooltip = 'text') %>% layout(dragmode = 'select')
+  }
+)
 
 # --RESOURCES CALLBACK--
 #Line chart (interest rate)
@@ -448,13 +553,15 @@ app$callback(
       filter(Series.Name %in% series_name, 
              year %in% years, 
              Country.Name %in% countries) %>%
-      mutate(education_level = str_extract(Series.Name, "Unemployment with (\\w+) education")) %>%
+      mutate(education_level = str_extract(Series.Name, "(basic|intermediate|advanced)")) %>%
       ggplot() +
-      aes(x = Country.Name, y = value, color = education_level) +
-      geom_bar() +
+      aes(x = Country.Name, y = value, fill = education_level) +
+      geom_bar(stat = "identity") +
       xlab("Country") +
       ylab ("Unemployment Rate") +
-      ggthemes::scale_color_tableau()
+      labs(fill = "education_level") +
+      ggthemes::scale_color_tableau() +
+      theme(axis.text.x = element_text(angle = 90, hjust = 1))
     
     ggplotly(p)
   }
@@ -474,8 +581,8 @@ app$callback(
              year %in% years, 
              Country.Name %in% countries) %>%
       ggplot() +
-      aes(x = value, y = Country.Name, color = Country.Name) +
-      geom_bar() +
+      aes(x = value, y = Country.Name, fill = Country.Name) +
+      geom_bar(stat = "identity") +
       xlab("Participation Rate") +
       ylab ("Country") +
       ggthemes::scale_color_tableau()
@@ -552,6 +659,77 @@ app$callback(
     }
 )
 
+<<<<<<< HEAD
+=======
+# callback for logistics cc_bar
+app$callback(
+  output(id = "cc_bar", property = "figure"),
+  list(
+    input(id = "countries", property = "value"),
+    input(id = "years", property = "value"),
+    input(id = "logistics_cc", property = "value")
+  ),
+  function(years, countries, logistics_cc) {
+    if (is.null(countries)) {
+      countries <- c('Afghanistan', 'Albania', 'Algeria', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan')
+    }
+    
+    if (is.null(years)) {
+      years <- '2014'
+    }
+    
+    if (is.null(logistics_cc)) {
+      logistics_cc <- 30
+    }
+    # fig <- plot_ly(
+    #         data = bi %>%
+    #           group_by(year) %>%
+    #           filter(Series.Name == "Average time to clear exports through customs (days)",
+    #                 Country.Name %in% countries,
+    #                 year %in% years,
+    #                 value < logistics_cc
+    #           ),
+    #         x = ~year,
+    #         y = ~value,
+    #         color = ~Country.Name,
+    #         type = "bar"
+    #       )
+    # fig
+    
+    # p <- bi %>%
+    #   filter(Series.Name == "Average time to clear exports through customs (days)",
+    #          Country.Name %in% countries,
+    #          year %in% years,
+    #          value < logistics_cc
+    #   ) %>%
+    #   ggplot() +
+    #   
+    #   aes(x = Country.Name, y = value, color = Country.Name) +
+    #   geom_col() +
+    #   facet_wrap(~year) +
+    #   labs(x=NULL, y="Days") +
+    #   geom_text(aes(label=value), position=position_stack(vjust=0.5)) +
+    #   geom_label(aes(label=Country.Name), position=position_stack(vjust=-0.5)) +
+    #   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    #   ggtitle(NULL) +
+    #   labs(tooltip = c("Country Name", "year", "value"))
+    
+    p <- bi %>%
+      filter(Series.Name == "Average time to clear exports through customs (days)",
+             Country.Name %in% countries,
+             year %in% years,
+             value < logistics_cc
+      ) %>%
+      ggplot() +
+      aes(x = year, y = value, fill = Country.Name) +
+      geom_bar(stat = "identity", position = "dodge") +
+      ggthemes::scale_color_tableau()
+    
+    ggplotly(p)
+  }
+)
+
+>>>>>>> d6932492ce66402df878ba9d449a96224e778b61
 
 # callback for logistics lpi_radar
 app$callback(
@@ -636,8 +814,13 @@ app$callback(
 app$callback(
   output(id="tti_sb", property="figure"),
   list(input(id="countries", property="value"),
+<<<<<<< HEAD
    input(id="years", property="value"),
    input(id="logistics_tti", property="value")),
+=======
+       input(id="years", property="value"),
+       input(id="logistics_tti", property="value")),
+>>>>>>> d6932492ce66402df878ba9d449a96224e778b61
   
   function(countries, years, hours) {
     filtered_export <- bi %>% 
@@ -660,8 +843,11 @@ app$callback(
   }
 )
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> d6932492ce66402df878ba9d449a96224e778b61
 app$run_server(debug = F)
 
 # host = '0.0.0.0'
