@@ -31,6 +31,7 @@ c. Having built the framework in Python, it really helped to progress in R but n
 a. Data is available only till 2019, new data will be available only in 2024. Till then, history is limited for decision.
 b. Some data is not available in the database, graph would report NA.
 c. Include more parameters.
+d. Logistics Tab graphs not work inside of app lay out.
 
 ## Dashboard Open Issues
 Please refer to the GitHub issues list and road ahead section.
