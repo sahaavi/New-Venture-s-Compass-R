@@ -19,11 +19,13 @@ library(stringr)
 app <- Dash$new(external_stylesheets = dbcThemes$BOOTSTRAP)
 
 bi <- read.csv("data/processed/melted_data.csv")
+df <- read.csv("data/raw/world_country_and_usa_states_latitude_and_longitude_values.csv")
+
 #bi$year <- as.character(bi$year)
 
 #constructing multilist for drop down (year selection) options with label and value
 #the years variable is set to the 'options' argument in dccDropdown()
-years_1 <- lapply(
+years <- lapply(
   unique(bi$year),
   function(available_indicator) {
     list(label = available_indicator,
@@ -34,7 +36,7 @@ years_1 <- lapply(
 
 #constructing multilist for drop down (country selection) options with label and value
 #the countries variable is set to the 'options' argument in dccDropdown()
-countries_1 <- lapply(
+countries <- lapply(
   unique(bi$Country.Name),
   function(available_indicator) {
     list(label = available_indicator,
@@ -233,8 +235,8 @@ app$layout(
               dccDropdown(
                 id = 'countries',
                 placeholder='Select countries...',
-                value='Afghanistan',
-                options = countries_1,
+                value=list('Afghanistan','Australia','Canada','Albania','Algeria'),
+                options = countries,
                 multi = TRUE
               )
             ),
@@ -243,18 +245,10 @@ app$layout(
               dccDropdown(
                 id = 'years',
                 placeholder= 'Select years...',
-                value='2014',
-                options = years_1,
+                value=list('2014','2015','2016','2017','2018','2019'),
+                options = years,
                 multi = TRUE
-              )),
-            dbcCol(
-                # dropdown for temporary check,
-              dccDropdown(
-                id='col-select',
-                options = msleep %>% colnames %>% purrr::map(function(col) list(label = col, value = col)),
-                value='bodywt')
-            )
-            
+              ))
             # end of top filters portion
             
           )),
@@ -430,16 +424,16 @@ app$layout(
 # --HOME CALLBACK--
 app$callback(
   output('plot-area', 'figure'),
-  list(input('col-select', 'value')),
-  function(xcol) {
-    p <- ggplot(msleep) +
-      aes(x = !!sym(xcol),
-          y = sleep_total,
-          color = vore,
-          text = name) +
-      geom_point() +
-      scale_x_log10() +
-      ggthemes::scale_color_tableau()
+  list(input(id = 'years', property = 'value'),
+       input(id = 'countries', property = 'value')),
+  
+  function(years, countries) {
+#      value <- 'Australia'
+      df <- df %>%
+        filter(country %in% countries)
+      p <- plot_geo(df, locationmode = 'world', sizes = c(5, 250)) %>%
+        add_markers(x = ~longitude, y = ~latitude, text = ~country, hoverinfo = 'text')
+    
     ggplotly(p, tooltip = 'text') %>% layout(dragmode = 'select')
   }
 )
@@ -476,18 +470,20 @@ app$callback(
 
 app$callback(
   output('hm_line2', 'figure'),
-  list(input('hm_line', 'selectedData')),
-  function(selected_data) {
-    sel_ctry <- selected_data[[1]] %>% purrr::map_chr('text')
-    print(bi %>% filter(Country.Name %in% sel_ctry))
-    print(toString(selected_data))
-    sel_ctry <- list('Afghanistan','Canada')
-    print(sel_ctry)
+  list(input(id = 'years', property = 'value'),
+       input(id = 'countries', property = 'value')),
+  
+  function(years, countries) {
+    #sel_ctry <- selected_data[[1]] %>% purrr::map_chr('text')
+    #print(bi %>% filter(Country.Name %in% countries))
+    #print(toString(selected_data))
+    #sel_ctry <- list('Afghanistan','Canada')
+    #print(sel_ctry)
     series_name <- 'Time required to start a business (days)'
     p <- ggplot(bi %>%
                    filter(Series.Name == series_name, 
-                          #year %in% years, 
-                          Country.Name %in% sel_ctry)) +
+                          year %in% years, 
+                          Country.Name %in% countries)) +
       aes(x = year, y = value, color = Country.Name,text = Country.Name) +
       geom_point(shape = "circle",stat='identity') +
       geom_line(stat='identity') +
